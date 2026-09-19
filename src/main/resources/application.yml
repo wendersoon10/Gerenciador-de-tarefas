@@ -3,3 +3,5 @@ spring:
     url : jdbc:mysql://localhost:3307/task_manager
     username: banco_usuario
     password: minha_senha
+jwt:
+  secret: ${JWT_SECRET}

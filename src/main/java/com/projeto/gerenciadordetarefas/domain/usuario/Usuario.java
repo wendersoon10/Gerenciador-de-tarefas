@@ -3,6 +3,7 @@ package com.projeto.gerenciadordetarefas.domain.usuario;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
 
@@ -27,6 +28,7 @@ public class Usuario {
     @CreationTimestamp
     @Column(nullable = false)
     private Instant atualizadoAt;
+
 
 
 }
