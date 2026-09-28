@@ -1,6 +1,7 @@
 package com.projeto.gerenciadordetarefas.controller;
 
 import com.projeto.gerenciadordetarefas.domain.usuario.UsuarioRequestDto;
+import com.projeto.gerenciadordetarefas.infra.JwtService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -13,19 +14,28 @@ import org.springframework.web.bind.annotation.RestController;
 public class AutenticacaoController {
 
     private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
-    public AutenticacaoController(AuthenticationManager authenticationManager) {
+    public AutenticacaoController(AuthenticationManager authenticationManager, JwtService jwtService) {
         this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Void> login (@RequestBody UsuarioRequestDto usuarioRequestDto){
+    public ResponseEntity<String> login (@RequestBody UsuarioRequestDto usuarioRequestDto){
+
         Authentication authenticationRequest =
-                UsernamePasswordAuthenticationToken.unauthenticated(usuarioRequestDto.email(), usuarioRequestDto.senha());
+                UsernamePasswordAuthenticationToken.unauthenticated(
+                        usuarioRequestDto.email(),
+                        usuarioRequestDto.senha()
+                );
+
         Authentication authenticationResponse =
                 this.authenticationManager.authenticate(authenticationRequest);
 
-        return ResponseEntity.ok().build();
+        String token = jwtService.gerarToker(authenticationResponse.getName());
+
+        return ResponseEntity.ok(token);
     }
 
 
