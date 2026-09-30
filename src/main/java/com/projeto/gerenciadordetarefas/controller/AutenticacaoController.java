@@ -33,7 +33,7 @@ public class AutenticacaoController {
         Authentication authenticationResponse =
                 this.authenticationManager.authenticate(authenticationRequest);
 
-        String token = jwtService.gerarToker(authenticationResponse.getName());
+        String token = jwtService.gerarToken(authenticationResponse.getName());
 
         return ResponseEntity.ok(token);
     }

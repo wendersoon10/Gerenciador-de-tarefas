@@ -52,7 +52,7 @@ public class UsuarioController {
 
     @PutMapping("/{id}")
     public ResponseEntity<UsuarioResponseDto> editarUser(@RequestBody UsuarioRequestDto user, @PathVariable Long id){
-        var buscarUser = usuarioService.editar(user, id);
+            var buscarUser = usuarioService.editar(user, id);
 
         return ResponseEntity.ok(buscarUser);
     }
