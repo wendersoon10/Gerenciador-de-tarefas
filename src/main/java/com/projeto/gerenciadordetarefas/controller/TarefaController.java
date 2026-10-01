@@ -34,21 +34,13 @@ public class TarefaController {
         return ResponseEntity.ok(buscarId);
     }
 
-    @GetMapping("/usuario/{id}")
+    @GetMapping
     public ResponseEntity<Page<TarefaResponseDTO>> buscarPorUsuario(
-            @PathVariable Long id,
             Pageable pageable
     ) {
-        var tarefas = tarefaService.buscarPorUsuario(id, pageable);
+        var tarefas = tarefaService.buscarPorUsuario(pageable);
 
         return ResponseEntity.ok(tarefas);
-    }
-
-    @GetMapping
-    public ResponseEntity<Page<TarefaResponseDTO>> buscarTodos(Pageable pageable){
-        var listarTarefas = tarefaService.buscarTodos(pageable);
-
-        return ResponseEntity.ok(listarTarefas);
     }
 
     @PutMapping("/{id}")

@@ -4,11 +4,17 @@ import com.projeto.gerenciadordetarefas.domain.Status;
 import com.projeto.gerenciadordetarefas.domain.tarefa.Tarefa;
 import com.projeto.gerenciadordetarefas.domain.tarefa.TarefaRequestDTO;
 import com.projeto.gerenciadordetarefas.domain.tarefa.TarefaResponseDTO;
+import com.projeto.gerenciadordetarefas.domain.usuario.Usuario;
+import com.projeto.gerenciadordetarefas.exception.AcessoNegadoException;
 import com.projeto.gerenciadordetarefas.repository.TarefaRepository;
 import com.projeto.gerenciadordetarefas.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import org.springframework.stereotype.Service;
 
 @Service
@@ -28,10 +34,10 @@ public class TarefaService {
     // CRIAR TAREFA
     public TarefaResponseDTO cadastrar(TarefaRequestDTO dadosDTO) {
 
-        var usuario = usuarioRepository.findById(dadosDTO.usuarioId())
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-
         Tarefa tarefa = new Tarefa();
+
+        Usuario usuario =
+                obterUsuarioAutenticado();
 
         tarefa.setTitulo(dadosDTO.tarefa());
         tarefa.setDescricao(dadosDTO.descricao());
@@ -51,18 +57,21 @@ public class TarefaService {
         Tarefa tarefa = tarefaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Tarefa não encontrada"));
 
+        Usuario usuario = obterUsuarioAutenticado();
+
+        if(!tarefa.getUsuario().equals(usuario)){
+            throw new AcessoNegadoException("Acesso negado");
+        }
         return converterParaDTO(tarefa);
     }
 
-    public Page<TarefaResponseDTO> buscarTodos(Pageable pageable){
-        return tarefaRepository.findAll(pageable)
-                .map(this::converterParaDTO);
 
-    }
+    public Page<TarefaResponseDTO> buscarPorUsuario(Pageable pageable){
 
-    // BUSCA TODAS AS TAREFAS DE UM USUÁRIO COM PAGINAÇÃO
-    public Page<TarefaResponseDTO> buscarPorUsuario(Long id, Pageable pageable){
-        return tarefaRepository.findByUsuarioId(id,pageable)
+        Usuario usuario =
+                obterUsuarioAutenticado();
+
+        return tarefaRepository.findByUsuarioId(usuario.getId(),pageable)
             .map(this::converterParaDTO);
     }
 
@@ -77,6 +86,12 @@ public class TarefaService {
         novaTarefa.setPrioridade(tarefa.prioridade());
         novaTarefa.setDataVencimento(tarefa.dataVencimento());
 
+        Usuario usuario = obterUsuarioAutenticado();
+
+        if(!novaTarefa.getUsuario().equals(usuario)){
+            throw new AcessoNegadoException("Acesso negado");
+        }
+
         tarefaRepository.save(novaTarefa);
 
         return converterParaDTO(novaTarefa);
@@ -85,8 +100,15 @@ public class TarefaService {
 
     @Transactional
     public void deletar(Long id){
-            tarefaRepository.findById(id)
+           Tarefa tarefa = tarefaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Tarefa não encontrada"));
+
+            Usuario usuario =
+                    obterUsuarioAutenticado();
+
+            if(!tarefa.getUsuario().equals(usuario)){
+                throw new AcessoNegadoException("Acesso negado");
+            }
 
         tarefaRepository.deleteById(id);
     }
@@ -95,6 +117,13 @@ public class TarefaService {
     public TarefaResponseDTO alterarStatus(Long id, Status status){
         var tarefa = tarefaRepository.findById(id).
             orElseThrow(() -> new RuntimeException("Tarefa não encontrada"));
+
+        Usuario usuario =
+                obterUsuarioAutenticado();
+
+        if(!tarefa.getUsuario().equals(usuario)){
+            throw new AcessoNegadoException("Acesso negado");
+        }
 
         tarefa.setStatus(status);
 
@@ -115,5 +144,18 @@ public class TarefaService {
                 tarefa.getCriadoAt(),
                 tarefa.getAtualizadoAt()
         );
+    }
+
+    private Usuario obterUsuarioAutenticado(){
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        UserDetails userDetails =
+                (UserDetails) authentication.getPrincipal();
+
+        String email = userDetails.getUsername();
+
+        return usuarioRepository.findByEmail(email)
+               .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
     }
 }

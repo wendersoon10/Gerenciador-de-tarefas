@@ -38,4 +38,12 @@ public class GlobalExceptionalHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .body(erros);
     }
+
+    @ExceptionHandler(AcessoNegadoException.class)
+    public ResponseEntity<String> tratarAcessoNegado (AcessoNegadoException ex){
+
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(ex.getMessage());
+    }
 }
