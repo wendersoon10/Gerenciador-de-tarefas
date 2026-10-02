@@ -4,6 +4,8 @@ package com.projeto.gerenciadordetarefas.service;
 import com.projeto.gerenciadordetarefas.domain.usuario.Usuario;
 import com.projeto.gerenciadordetarefas.domain.usuario.UsuarioRequestDto;
 import com.projeto.gerenciadordetarefas.domain.usuario.UsuarioResponseDto;
+import com.projeto.gerenciadordetarefas.exception.EmailExistenteException;
+import com.projeto.gerenciadordetarefas.infra.AuthenticationService;
 import com.projeto.gerenciadordetarefas.repository.UsuarioRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,14 +18,21 @@ public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationService authenticationService;
 
-    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder, AuthenticationService authenticationService) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
+        this.authenticationService = authenticationService;
     }
 
     //CRIA USUARIO
     public UsuarioResponseDto cadastrar(UsuarioRequestDto dados){
+
+        if(usuarioRepository.findByEmail(dados.email()).isPresent()){
+            throw new EmailExistenteException("Não é possível cadastrar com um email existente");
+        }
+
         Usuario usuario = new Usuario();
 
         usuario.setNome(dados.nome());
@@ -57,24 +66,19 @@ public class UsuarioService {
     }
 
     //DELETE
-    public void deletar(Long dadosId){
-        var deleteId = usuarioRepository.findById(dadosId);
+    public void deletar(){
 
-        if(deleteId.isEmpty()){
-            throw new RuntimeException("Id de usuário não encontrado");
-        }
+        Usuario usuario =
+                authenticationService.obterUsuarioAutenticado();
 
-        usuarioRepository.delete(deleteId.get());
+        usuarioRepository.delete(usuario);
     }
 
     //ATUALIZA
-    public UsuarioResponseDto editar(UsuarioRequestDto user, Long idUser){
-        var buscarUsuario = usuarioRepository.findById(idUser);
+    public UsuarioResponseDto editar(UsuarioRequestDto user){
 
-        if (buscarUsuario.isEmpty()){
-          throw new RuntimeException("Usuário não encontrado");
-      }
-      Usuario usuario = buscarUsuario.get();
+        Usuario usuario =
+                authenticationService.obterUsuarioAutenticado();
 
       usuario.setNome(user.nome());
       usuario.setEmail(user.email());

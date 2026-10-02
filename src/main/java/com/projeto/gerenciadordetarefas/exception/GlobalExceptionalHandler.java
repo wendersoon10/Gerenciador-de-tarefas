@@ -46,4 +46,12 @@ public class GlobalExceptionalHandler {
                 .status(HttpStatus.FORBIDDEN)
                 .body(ex.getMessage());
     }
+
+    @ExceptionHandler(EmailExistenteException.class)
+    public ResponseEntity<String> tratarEmailExistente (EmailExistenteException ex){
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ex.getMessage());
+    }
 }

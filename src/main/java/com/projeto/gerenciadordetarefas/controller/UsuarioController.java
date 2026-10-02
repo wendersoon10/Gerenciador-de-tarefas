@@ -39,20 +39,19 @@ public class UsuarioController {
     public ResponseEntity<Page<UsuarioResponseDto>> listarTodos(Pageable pageable){
         var listarTodos = usuarioService.buscarTodos(pageable);
 
-
         return ResponseEntity.ok(listarTodos);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable Long id){
-            usuarioService.deletar(id);
+    @DeleteMapping
+    public ResponseEntity<Void> deletar(){
+            usuarioService.deletar();
 
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<UsuarioResponseDto> editarUser(@RequestBody UsuarioRequestDto user, @PathVariable Long id){
-            var buscarUser = usuarioService.editar(user, id);
+    @PutMapping
+    public ResponseEntity<UsuarioResponseDto> editarUser(@RequestBody UsuarioRequestDto user){
+            var buscarUser = usuarioService.editar(user);
 
         return ResponseEntity.ok(buscarUser);
     }
