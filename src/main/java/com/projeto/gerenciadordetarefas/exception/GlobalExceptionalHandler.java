@@ -1,5 +1,7 @@
 package com.projeto.gerenciadordetarefas.exception;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -13,6 +15,19 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionalHandler {
 
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<String> tratarTokenExpirado(ExpiredJwtException ex){
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body("O token enviado está expirado. Por favor, faça login novamente.");
+    }
+
+    @ExceptionHandler(JwtException.class)
+    public ResponseEntity<String> tratarTokenInvalido(JwtException ex){
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body("Token de autenticação inválido, corrompido ou ausente.");
+    }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<String> tratarCredenciaisInvalidas(BadCredentialsException ex) {

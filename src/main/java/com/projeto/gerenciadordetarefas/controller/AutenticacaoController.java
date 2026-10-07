@@ -24,15 +24,21 @@ public class AutenticacaoController {
     @PostMapping("/login")
     public ResponseEntity<String> login (@RequestBody UsuarioRequestDto usuarioRequestDto){
 
+        // Instancia uma solicitação de autenticação (Token) contendo as credenciais brutas,
+        // definindo explicitamente o estado interno como NÃO AUTENTICADO.
         Authentication authenticationRequest =
                 UsernamePasswordAuthenticationToken.unauthenticated(
                         usuarioRequestDto.email(),
                         usuarioRequestDto.senha()
                 );
 
+        // O AuthenticationManager orquestra a validação das credenciais no banco de dados.
+        // Se forem válidas, retorna um novo objeto Authentication marcado como AUTENTICADO.
         Authentication authenticationResponse =
                 this.authenticationManager.authenticate(authenticationRequest);
 
+        // Extrai o identificador (e-mail) do usuário autenticado com sucesso
+        // e gera o Token JWT assinado para ser devolvido ao cliente.
         String token = jwtService.gerarToken(authenticationResponse.getName());
 
         return ResponseEntity.ok(token);

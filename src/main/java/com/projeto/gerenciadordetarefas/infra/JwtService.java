@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 
 
 @Service
@@ -19,6 +20,9 @@ public class JwtService {
     @Value("${JWT_SECRET}")
     private String secret;
 
+    //Tempo de expiração em milissegundos
+    private static final long TEMPO_EXPIRACAO = 900000;
+
     private SecretKey getSigningkey(){
         return Keys.hmacShaKeyFor(      //Transforma os bytes em uma SecretKey
                 secret.getBytes(StandardCharsets.UTF_8) //Transforma a string em um conjunto de bytes
@@ -26,8 +30,13 @@ public class JwtService {
     }
 
     public String gerarToken(String email){
+        Date dataCriacao = new Date();
+        Date dataExpiracao = new Date(dataCriacao.getTime() + TEMPO_EXPIRACAO);
+
         return Jwts.builder()
-                .subject(email)  //É assim que posteriormente, o filtro poderá descobrir quem está fazendo a requisição
+                .subject(email)
+                .issuedAt(dataCriacao) //Define quando o token foi criado
+                .expiration(dataExpiracao) //Define quando o token perde a validade
                 .signWith(getSigningkey())  //Assina o token utilizando a SecretKey
                 .compact(); //Monta o JWT final em formato de String
 
