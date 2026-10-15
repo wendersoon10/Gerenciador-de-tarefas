@@ -8,6 +8,7 @@ import com.projeto.gerenciadordetarefas.infra.AuthenticationService;
 import com.projeto.gerenciadordetarefas.repository.UsuarioRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -106,10 +107,37 @@ class UsuarioServiceTest {
         );
     }
 
+    @Test
+    void cenario03(){
+        String nome = "usuario";
+        String email = "usuario@gmail.com";
+        String senha = "123456";
+
+        Mockito.when(usuarioRepository.findByEmail(email))
+                .thenReturn(Optional.empty());
+
+        Mockito.when(passwordEncoder.encode(senha))
+                .thenReturn("hash-feito");
+
+        UsuarioRequestDto usuarioRequestDto =
+            new UsuarioRequestDto(nome, email, senha);
+
+        usuarioService.cadastrar(usuarioRequestDto);
+
+        ArgumentCaptor<Usuario> usuarioCaptor = ArgumentCaptor.forClass(Usuario.class);
+
+        Mockito.verify(usuarioRepository).save(usuarioCaptor.capture());
+
+        Usuario usuarioAlterado = usuarioCaptor.getValue();
+
+        assertEquals("hash-feito", usuarioAlterado.getSenha());
+        Mockito.verify(passwordEncoder).encode("123456");
+    }
+
 
     // CENÁRIO 03: buscar um usuário existente pelo ID.
     @Test
-    void cenario03() {
+    void cenario04() {
 
         // Define os dados do usuário que será encontrado.
         Long idUsuario = 7L;
@@ -142,7 +170,7 @@ class UsuarioServiceTest {
 
     // CENÁRIO 04: tentar buscar um usuário inexistente pelo ID.
     @Test
-    void cenario04() {
+    void cenario05() {
 
         // Define o ID do usuário que não será encontrado.
         Long idUsuario = 7L;
