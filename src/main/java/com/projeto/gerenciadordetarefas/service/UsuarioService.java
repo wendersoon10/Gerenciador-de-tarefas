@@ -82,6 +82,7 @@ public class UsuarioService {
 
       usuario.setNome(user.nome());
       usuario.setEmail(user.email());
+      usuario.setSenha(passwordEncoder.encode(user.senha()));
 
       usuarioRepository.save(usuario);
 

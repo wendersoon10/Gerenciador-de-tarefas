@@ -135,7 +135,6 @@ class UsuarioServiceTest {
     }
 
 
-    // CENÁRIO 03: buscar um usuário existente pelo ID.
     @Test
     void cenario04() {
 
@@ -168,7 +167,7 @@ class UsuarioServiceTest {
     }
 
 
-    // CENÁRIO 04: tentar buscar um usuário inexistente pelo ID.
+
     @Test
     void cenario05() {
 
@@ -191,4 +190,49 @@ class UsuarioServiceTest {
                 excecao.getMessage()
         );
     }
+
+    @Test
+    void cenario06 () {
+
+        //ARRANGE: prepara os dados necessários para o teste.
+        String nome = "usuario teste";
+        String email = "usuario@gmail.com";
+        String senha = "123456";
+
+        UsuarioRequestDto requestDto =
+                new UsuarioRequestDto(nome, email, senha);
+
+        Usuario usuario = new Usuario();
+
+        usuario.setId(1L);
+        usuario.setNome("usuario atual");
+        usuario.setEmail("novousuario@gmail.com");
+        usuario.setSenha("654321");
+
+        //Configura os mocks para simular autenticação e o retorno da criptografia
+        Mockito.when(authenticationService.obterUsuarioAutenticado())
+                .thenReturn(usuario);
+        Mockito.when(passwordEncoder.encode("123456"))
+                .thenReturn("senha-criptografada");
+
+        //ACT: executa o método que está sendo testado
+        UsuarioResponseDto resultado = usuarioService.editar(requestDto);
+
+        //ASSERT: captura o usuário enviado para salvar no repositório,
+        //permitindo verificar se os dados foram atualizados corretamente
+        ArgumentCaptor<Usuario> usuarioCaptor = ArgumentCaptor.forClass(Usuario.class);
+
+        Mockito.verify(usuarioRepository).save(usuarioCaptor.capture());
+        Usuario usuarioAtualizado = usuarioCaptor.getValue();
+
+        Mockito.verify(passwordEncoder).encode("123456");
+
+        assertEquals("usuario teste", resultado.nome());
+        assertEquals("usuario@gmail.com", resultado.email());
+
+        assertEquals("usuario teste", usuarioAtualizado.getNome());
+        assertEquals("usuario@gmail.com", usuarioAtualizado.getEmail());
+        assertEquals("senha-criptografada", usuarioAtualizado.getSenha());
+    }
 }
+
