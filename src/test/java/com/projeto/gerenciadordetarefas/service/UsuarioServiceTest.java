@@ -13,8 +13,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -234,5 +240,45 @@ class UsuarioServiceTest {
         assertEquals("usuario@gmail.com", usuarioAtualizado.getEmail());
         assertEquals("senha-criptografada", usuarioAtualizado.getSenha());
     }
+
+    @Test
+    void cenario07() {
+        Usuario usuario = new Usuario();
+
+        Mockito.when(authenticationService.obterUsuarioAutenticado())
+                .thenReturn(usuario);
+
+        usuarioService.deletar();
+
+        Mockito.verify(usuarioRepository).delete(usuario);
+    }
+
+
+    @Test
+    void cenario08() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Usuario usuario = new Usuario();
+        usuario.setId(1L);
+        usuario.setNome("usuario");
+        usuario.setEmail("usuario@gmail.com");
+
+        List<Usuario>usuarios = new ArrayList<>();
+        usuarios.add(usuario);
+
+        Page<Usuario> paginaUsuarios =
+                new PageImpl<>(usuarios, pageable, usuarios.size());
+
+        Mockito.when(usuarioRepository.findAll(pageable))
+                .thenReturn(paginaUsuarios);
+
+        Page<UsuarioResponseDto> usuarioResponseDto =
+                usuarioService.buscarTodos(pageable);
+
+        assertEquals(1, usuarioResponseDto.getTotalElements());
+        assertEquals("usuario", usuarioResponseDto.getContent().get(0).nome());
+        assertEquals("usuario@gmail.com", usuarioResponseDto.getContent().get(0).email());
+    }
+
 }
 
