@@ -1,6 +1,7 @@
 package com.projeto.gerenciadordetarefas.service;
 
 
+import com.projeto.gerenciadordetarefas.domain.Role;
 import com.projeto.gerenciadordetarefas.domain.usuario.Usuario;
 import com.projeto.gerenciadordetarefas.domain.usuario.UsuarioRequestDto;
 import com.projeto.gerenciadordetarefas.domain.usuario.UsuarioResponseDto;
@@ -38,6 +39,7 @@ public class UsuarioService {
         usuario.setNome(dados.nome());
         usuario.setEmail(dados.email());
         usuario.setSenha(passwordEncoder.encode(dados.senha()));
+        usuario.setRole(Role.USER);
 
         // salvar no banco
         usuarioRepository.save(usuario);

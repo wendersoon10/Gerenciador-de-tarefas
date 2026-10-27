@@ -1,3 +1,4 @@
+
 package com.projeto.gerenciadordetarefas.infra;
 
 import org.springframework.context.annotation.Bean;
@@ -21,7 +22,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
-
     @Bean
     public SecurityFilterChain seguranca(
             HttpSecurity http,
@@ -36,12 +36,26 @@ public class SecurityConfig {
                 )
                 .exceptionHandling(exception ->
                         exception.authenticationEntryPoint(authenticationEntryPoint)
-                        .accessDeniedHandler(accessDeniedHandler))
+                                .accessDeniedHandler(accessDeniedHandler)
+                )
                 .authorizeHttpRequests(auth -> auth
+
+                        // Documentação Swagger/OpenAPI: acesso público
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**"
+                        ).permitAll()
+
+                        // Autenticação e cadastro públicos
                         .requestMatchers(HttpMethod.POST, "/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/usuario").permitAll()
+
+                        // Operações administrativas
                         .requestMatchers(HttpMethod.GET, "/usuario").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/usuario/{id}").hasRole("ADMIN")
+
+                        // Demais endpoints continuam protegidos
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(
@@ -57,7 +71,6 @@ public class SecurityConfig {
             UserDetailsService userDetailsService,
             PasswordEncoder passwordEncoder
     ) {
-
         DaoAuthenticationProvider authenticationProvider =
                 new DaoAuthenticationProvider(userDetailsService);
 
