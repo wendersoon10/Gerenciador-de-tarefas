@@ -1,4 +1,6 @@
+
 name: "CI - Gerenciador de Tarefas"
+
 on:
   pull_request:
   push:
@@ -6,11 +8,34 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: task_manager
+          MYSQL_USER: banco_usuario
+          MYSQL_PASSWORD: minha_senha
+          MYSQL_ROOT_PASSWORD: root_senha_ci
+        ports:
+          - 3307:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -proot_senha_ci"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
     steps:
       - uses: actions/checkout@v7
+
       - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '21'
+
       - run: java --version
-      - run: ./mvnw test
+
+      - name: Executar testes
+        run: ./mvnw test
+        env:
+          JWT_SECRET: ci-test-secret-key-32-bytes-minimum
